@@ -1,0 +1,38 @@
+# Vault Configuration
+vault:
+  enabled: true
+  server:
+    image:
+      repository: hashicorp/vault
+      tag: "1.14.0"
+    ha:
+      enabled: true
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+
+        storage "postgresql" {
+          connection_url = "postgres://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql:5432/vault?sslmode=disable"
+        }
+
+    service:
+      type: LoadBalancer
+      port: 8200
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  auth:
+    username: vault
+    password: vaultpassword
+    database: vault
+  persistence:
+    enabled: true
+    size: 10Gi
+  service:
+    type: ClusterIP
